@@ -34,10 +34,10 @@ Pinned to exact versions (`==`, not `>=`). CI reads the same file.
 ### `dbt_project.yml` — what the project *is*
 
 ```yaml
-profile: dbt_cicd_course      # <- which profile in profiles.yml to use
+profile: dbt_duckdb_cicd      # <- which profile in profiles.yml to use
 
 models:
-  dbt_cicd_course:
+  dbt_duckdb_cicd:
     staging:
       +materialized: view     # staging = cheap, disposable
     marts:
@@ -48,10 +48,26 @@ The line that matters for this course is `profile:`. It's a **pointer**. This
 file says *what to build*; `profiles.yml` says *where to put it*. That
 separation is the reason one unchanged project can build into dev, ci, or prod.
 
+> **Two names that are easy to confuse**, and here they happen to be identical:
+>
+> - `name:` is the **project** name. It's what you nest model and seed configs
+>   under, further down this same file.
+> - `profile:` is the **profile** name. It must match the top-level key in
+>   `profiles.yml`.
+>
+> `dbt init` sets both to the same string, which hides the distinction — until
+> the day you rename the project and forget to rename the nesting keys. Then
+> `models: old_name:` matches nothing, every `+materialized` and `+schema`
+> silently stops applying, and dbt **does not error**. Your models just quietly
+> become views in the wrong schema.
+>
+> If configs ever seem to be ignored, check that the key under `models:`
+> matches `name:` exactly. It's the first thing to rule out.
+
 ### `profiles.yml` — where to write
 
 ```yaml
-dbt_cicd_course:
+dbt_duckdb_cicd:
   target: dev                 # <- the default when you don't pass --target
   outputs:
     dev:

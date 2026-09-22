@@ -15,7 +15,7 @@
 # get a separate Snowflake database per environment; you get one warehouse
 # with dev / ci_pr_42 / prod schemas sitting side by side inside it.
 # ---------------------------------------------------------------------------
-dbt_cicd_course:
+dbt_duckdb_cicd:
   target: dev # used when you don't pass --target
   outputs:
 

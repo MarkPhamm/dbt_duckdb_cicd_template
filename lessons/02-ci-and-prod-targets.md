@@ -14,7 +14,7 @@ on your laptop, before any of this is automated.
 
 ```
 Runtime Error
-  The profile 'dbt_cicd_course' does not have a target named 'prod'.
+  The profile 'dbt_duckdb_cicd' does not have a target named 'prod'.
   The valid target names for this profile are:
    - dev
 ```
@@ -146,11 +146,11 @@ Two files cooperate. Neither works without the other.
 
 ```yaml
 seeds:
-  dbt_cicd_course:
+  dbt_duckdb_cicd:
     +schema: raw
 
 models:
-  dbt_cicd_course:
+  dbt_duckdb_cicd:
     staging:      {+materialized: view,  +schema: staging}
     intermediate: {+materialized: view,  +schema: intermediate}
     marts:        {+materialized: table, +schema: marts}

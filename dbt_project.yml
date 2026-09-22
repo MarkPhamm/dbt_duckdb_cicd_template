@@ -1,10 +1,10 @@
-name: dbt_cicd_course
+name: dbt_duckdb_cicd
 version: "1.0.0"
 
 # Which profile (in profiles.yml) this project uses. The profile holds the
 # *connection* details; this file holds the *project* details. Keeping them
 # separate is what lets one project connect to dev, ci, or prod unchanged.
-profile: dbt_cicd_course
+profile: dbt_duckdb_cicd
 
 model-paths: ["models"]
 seed-paths: ["seeds"]
@@ -20,11 +20,11 @@ clean-targets:
 # `raw` schema. Without this they'd fall back to the target's schema and leave
 # a stray `prod` schema containing nothing but CSVs.
 seeds:
-  dbt_cicd_course:
+  dbt_duckdb_cicd:
     +schema: raw
 
 models:
-  dbt_cicd_course:
+  dbt_duckdb_cicd:
     # `+schema:` declares which LAYER a folder belongs to. Whether anything
     # acts on that declaration is decided by macros/generate_schema_name.sql:
     # production splits the layers into real schemas, dev and ci ignore it
