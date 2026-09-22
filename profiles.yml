@@ -20,6 +20,6 @@ dbt_cicd_course:
   outputs:
     dev:
       type: duckdb
-      path: database.duckdb # the one and only database file
+      path: database/database.duckdb # the one and only database file
       schema: dev # your own scratch space inside it
       threads: 4

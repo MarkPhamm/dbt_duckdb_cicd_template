@@ -1,0 +1,5 @@
+# This directory holds database.duckdb -- our stand-in for a warehouse.
+#
+# The .duckdb file itself is gitignored (it's a build output, never a source
+# file), but the directory must exist before dbt can write into it. Git won't
+# track an empty directory, so this placeholder keeps it in the repo.

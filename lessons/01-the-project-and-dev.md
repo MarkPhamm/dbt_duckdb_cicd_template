@@ -56,14 +56,19 @@ dbt_cicd_course:
   outputs:
     dev:
       type: duckdb
-      path: database.duckdb   # the file
+      path: database/database.duckdb   # the file
       schema: dev             # the schema inside it
       threads: 4
 ```
 
 **`outputs:` is a list of environments.** Right now there's exactly one. In
 Lesson 02 we add `ci` and `prod` — and they'll point at the *same*
-`database.duckdb`, differing only in `schema`.
+`database/database.duckdb`, differing only in `schema`.
+
+> The file lives in `database/` rather than the repo root. The directory is
+> tracked via a `.gitkeep`; the `.duckdb` file inside it is gitignored, because
+> **the warehouse is a build output, never a source file.** You should be able
+> to delete it and get it back with one `dbt build`.
 
 > **Two things worth noticing.**
 >
@@ -104,7 +109,7 @@ are not? You'll need that answer in Lesson 03.
 ```bash
 uv run python -c "
 import duckdb
-con = duckdb.connect('database.duckdb', read_only=True)
+con = duckdb.connect('database/database.duckdb', read_only=True)
 for r in con.execute('''
   select table_schema, table_name, table_type
   from information_schema.tables order by 1, 3 desc, 2
@@ -178,7 +183,7 @@ word in one file. **Change it back to `dev` before moving on**, then drop the
 scratch schema:
 
 ```bash
-uv run python -c "import duckdb; duckdb.connect('database.duckdb').execute('drop schema if exists dev_scratch cascade')"
+uv run python -c "import duckdb; duckdb.connect('database/database.duckdb').execute('drop schema if exists dev_scratch cascade')"
 ```
 
 > **Try `dbt run` instead of `dbt build` there and it fails with 3 errors.**

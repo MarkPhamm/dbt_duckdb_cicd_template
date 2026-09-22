@@ -42,11 +42,11 @@ you understand rather than magic in a YAML file.
 
 ## The shape of it
 
-Three environments, **one** `database.duckdb` file, separated by schema — which
-is exactly how Snowflake and BigQuery teams do it:
+Three environments, **one** `database/database.duckdb` file, separated by
+schema — which is exactly how Snowflake and BigQuery teams do it:
 
 ```
-database.duckdb
+database/database.duckdb
 ├── dev         ← you, on your laptop
 ├── ci_pr_42    ← a pull request, temporarily
 └── prod        ← the real thing
@@ -92,6 +92,7 @@ theoretical.
 pyproject.toml       pinned dbt-core 1.12.5 + dbt-duckdb 1.11.0 (uv)
 dbt_project.yml      what the project is
 profiles.yml         where it writes — the three environments live here
+database/            where database.duckdb is built (the file is gitignored)
 seeds/               3 CSVs standing in for source tables
 models/staging/      3 views
 models/marts/        2 tables

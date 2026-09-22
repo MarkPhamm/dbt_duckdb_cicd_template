@@ -66,11 +66,12 @@ mistakes before they reach the one below it.
 
 ### Where they live
 
-We're using DuckDB, so our "warehouse" is a single file: `database.duckdb`.
-All three environments live **inside that one file**, separated only by schema:
+We're using DuckDB, so our "warehouse" is a single file:
+`database/database.duckdb`. All three environments live **inside that one
+file**, separated only by schema:
 
 ```
-database.duckdb
+database/database.duckdb
 ├── dev         ← you
 ├── ci_pr_42    ← a pull request, temporarily
 └── prod        ← the real thing
