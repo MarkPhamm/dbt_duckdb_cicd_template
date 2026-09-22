@@ -26,7 +26,7 @@ forward. Each lesson ends with a checkpoint — answer it before moving on.
 |---|---|---|
 | 00 | [Orientation — what problem are we solving?](lessons/00-orientation.md) | ✅ |
 | 01 | [The project, and your `dev` environment](lessons/01-the-project-and-dev.md) | ✅ |
-| 02 | Adding `ci` and `prod` — what a target really is | soon |
+| 02 | [Adding `ci` and `prod`, and layered schemas](lessons/02-ci-and-prod-targets.md) | ✅ |
 | 03 | State: what's actually inside `manifest.json` | soon |
 | 04 | Defer: making a build fail, then fixing it with one flag | soon |
 | 05 | Your first workflow — production (CD) | soon |
@@ -72,17 +72,17 @@ And the pipeline those environments plug into:
 
 ## The project itself
 
-Five models, kept deliberately tiny so the DAG fits in your head:
+Six models, kept deliberately tiny so the DAG fits in your head:
 
 ```
-raw_customers ──> stg_customers ───────────────┐
-                                                ├──> customers
-raw_orders ─────> stg_orders ──┐                │
-                               ├──> orders ─────┘
-raw_payments ───> stg_payments ┘
+raw_customers ──> stg_customers ──────────────────────────┐
+                                                           ├──> customers
+raw_orders ─────> stg_orders ──────────┐                   │
+                                       ├──> orders ────────┘
+raw_payments ───> stg_payments ──> int_order_payments ─────┘
 ```
 
-Edit `stg_payments` and three of the five models need rebuilding; the other two
+Edit `stg_payments` and four of the six models need rebuilding; the other two
 don't. That asymmetry is what makes the CI lessons demonstrable rather than
 theoretical.
 
@@ -95,7 +95,9 @@ profiles.yml         where it writes — the three environments live here
 database/            where database.duckdb is built (the file is gitignored)
 seeds/               3 CSVs standing in for source tables
 models/staging/      3 views
+models/intermediate/ 1 view
 models/marts/        2 tables
+macros/              generate_schema_name.sql — decides every model's schema
 lessons/             the course
 .github/workflows/   ci.yml and prod.yml (from Lesson 05)
 ```

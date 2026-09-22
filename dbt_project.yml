@@ -16,9 +16,25 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
+# Seeds stand in for raw source data, so in production they get their own
+# `raw` schema. Without this they'd fall back to the target's schema and leave
+# a stray `prod` schema containing nothing but CSVs.
+seeds:
+  dbt_cicd_course:
+    +schema: raw
+
 models:
   dbt_cicd_course:
+    # `+schema:` declares which LAYER a folder belongs to. Whether anything
+    # acts on that declaration is decided by macros/generate_schema_name.sql:
+    # production splits the layers into real schemas, dev and ci ignore it
+    # and put everything in one flat schema. See Lesson 02.
     staging:
       +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
     marts:
       +materialized: table
+      +schema: marts

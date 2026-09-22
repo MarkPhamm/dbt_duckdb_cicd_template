@@ -10,16 +10,47 @@
 # Each entry under `outputs:` is a TARGET, and a target is the whole of what
 # people mean by "an environment": where to write, and under what name.
 #
-# Right now there is only ONE target. Lesson 02 adds `ci` and `prod` -- all
-# three pointing at the SAME database.duckdb file, separated only by schema.
-# That is exactly how a real warehouse works: one Snowflake database, with
-# dev / ci_pr_42 / prod schemas sitting side by side inside it.
+# Notice that all three targets point at the SAME database file. They are
+# separated only by schema -- exactly how a real warehouse works. You don't
+# get a separate Snowflake database per environment; you get one warehouse
+# with dev / ci_pr_42 / prod schemas sitting side by side inside it.
 # ---------------------------------------------------------------------------
 dbt_cicd_course:
   target: dev # used when you don't pass --target
   outputs:
+
+    # -- YOUR LAPTOP -------------------------------------------------------
+    # Everything lands in one flat `dev` schema. One consumer (you), so
+    # there's nothing to be gained by splitting layers apart.
     dev:
       type: duckdb
-      path: database/database.duckdb # the one and only database file
-      schema: dev # your own scratch space inside it
+      path: database/database.duckdb
+      schema: dev
+      threads: 4
+
+    # -- PULL REQUESTS -----------------------------------------------------
+    # Also flat -- but the schema NAME is dynamic. GitHub Actions sets
+    # DBT_CI_SCHEMA=ci_pr_42, so two open pull requests never collide.
+    #
+    # The second argument to env_var() is a default, which is what makes this
+    # target runnable on your laptop too: with nothing set you get `ci_local`.
+    # You'll use that in Lesson 04 to rehearse CI by hand.
+    ci:
+      type: duckdb
+      path: database/database.duckdb
+      schema: "{{ env_var('DBT_CI_SCHEMA', 'ci_local') }}"
+      threads: 4
+
+    # -- PRODUCTION --------------------------------------------------------
+    # The odd one out. `schema:` here is only a fallback for models with no
+    # +schema config -- macros/generate_schema_name.sql overrides it, so real
+    # models land in `staging`, `intermediate` and `marts` instead.
+    #
+    # In a real warehouse this target would carry different CREDENTIALS too,
+    # not just a different name -- that's what stops CI from writing to prod.
+    # With one DuckDB file we have no such protection. See Lesson 07.
+    prod:
+      type: duckdb
+      path: database/database.duckdb
+      schema: prod
       threads: 4

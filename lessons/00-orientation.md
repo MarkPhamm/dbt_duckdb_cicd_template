@@ -72,10 +72,16 @@ file**, separated only by schema:
 
 ```
 database/database.duckdb
-├── dev         ← you
-├── ci_pr_42    ← a pull request, temporarily
-└── prod        ← the real thing
+├── dev          ← you
+├── ci_pr_42     ← a pull request, temporarily
+├── raw          ┐
+├── staging      │
+├── intermediate ├── production
+└── marts        ┘
 ```
+
+(Production splits into layers because lots of people query it; dev and CI stay
+flat because each has exactly one consumer. Lesson 02 covers why.)
 
 This is not a DuckDB quirk — it's exactly how Snowflake, BigQuery and Redshift
 teams do it. You don't get a separate warehouse per environment. You get one

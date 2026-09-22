@@ -86,14 +86,14 @@ Lesson 02 we add `ci` and `prod` — and they'll point at the *same*
 
 ## 3. The DAG
 
-Five models, deliberately small enough to hold in your head:
+Six models, deliberately small enough to hold in your head:
 
 ```
-raw_customers ──> stg_customers ───────────────┐
-                                                ├──> customers
-raw_orders ─────> stg_orders ──┐                │
-                               ├──> orders ─────┘
-raw_payments ───> stg_payments ┘
+raw_customers ──> stg_customers ──────────────────────────┐
+                                                           ├──> customers
+raw_orders ─────> stg_orders ──────────┐                   │
+                                       ├──> orders ────────┘
+raw_payments ───> stg_payments ──> int_order_payments ─────┘
 ```
 
 The `raw_*` are seeds (CSVs in `seeds/`) standing in for source tables.
@@ -118,14 +118,15 @@ for r in con.execute('''
 ```
 
 ```
-dev      stg_customers    VIEW
-dev      stg_orders       VIEW
-dev      stg_payments     VIEW
-dev      customers        BASE TABLE
-dev      orders           BASE TABLE
-dev      raw_customers    BASE TABLE
-dev      raw_orders       BASE TABLE
-dev      raw_payments     BASE TABLE
+dev      int_order_payments  VIEW
+dev      stg_customers       VIEW
+dev      stg_orders          VIEW
+dev      stg_payments        VIEW
+dev      customers           BASE TABLE
+dev      orders              BASE TABLE
+dev      raw_customers       BASE TABLE
+dev      raw_orders          BASE TABLE
+dev      raw_payments        BASE TABLE
 ```
 
 Everything is in schema **`dev`**. Trace why, because this chain is the thing
@@ -138,14 +139,14 @@ you ran `dbt build` with no --target
              └─> so every model was created in schema `dev`
 ```
 
-Change one word in `profiles.yml` and all eight objects land somewhere else.
+Change one word in `profiles.yml` and all nine objects land somewhere else.
 **That is the entire mechanism behind environments.** There is nothing more to it.
 
 ---
 
 ## 5. The tests are not decoration
 
-`dbt build` ran 22 nodes: 3 seeds, 5 models, and **14 tests**. Those tests are
+`dbt build` ran 26 nodes: 3 seeds, 6 models, and **17 tests**. Those tests are
 the reason CI can have an opinion about your pull request.
 
 Look at `models/staging/schema.yml`:
@@ -220,7 +221,7 @@ onto that**, because Slim CI is nothing more than dbt working out that
    — and why would a team make staging models views and marts tables?
 
 3. Here's the one that matters. Look at the DAG in section 3.
-   **You edit `stg_payments.sql`.** Which of the five models genuinely need
+   **You edit `stg_payments.sql`.** Which of the six models genuinely need
    rebuilding, and which are unaffected?
 
    Write down your list. We'll have dbt generate the same list mechanically in

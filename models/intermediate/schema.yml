@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: int_order_payments
+    description: "Payments aggregated to one row per order. Not for end users."
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: total_amount
+        data_tests: [not_null]
