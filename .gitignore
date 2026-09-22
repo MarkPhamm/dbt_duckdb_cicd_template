@@ -216,3 +216,29 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---------------------------------------------------------------------------
+# dbt
+# (git does NOT support trailing comments on a pattern line -- "target/ # x"
+#  would be treated as a literal pattern. Comments always get their own line.)
+# ---------------------------------------------------------------------------
+
+# compiled SQL + run artifacts, including manifest.json
+target/
+
+# installed dbt packages (dbt deps)
+dbt_packages/
+
+# dbt.log
+logs/
+
+# dbt's anonymous-usage id
+.user.yml
+
+# The warehouse itself is a build output, never a source file.
+*.duckdb
+*.duckdb.wal
+
+# Production artifacts downloaded at runtime by CI. Never committed -- the
+# whole point is that they come from the last real production run.
+state/

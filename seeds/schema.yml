@@ -1,0 +1,7 @@
+version: 2
+
+seeds:
+  - name: raw_customers
+    description: "Stand-in for a real source table. In production this would be a `source`, not a seed."
+  - name: raw_orders
+  - name: raw_payments

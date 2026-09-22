@@ -1,0 +1,24 @@
+name: dbt_cicd_course
+version: "1.0.0"
+
+# Which profile (in profiles.yml) this project uses. The profile holds the
+# *connection* details; this file holds the *project* details. Keeping them
+# separate is what lets one project connect to dev, ci, or prod unchanged.
+profile: dbt_cicd_course
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+# `dbt clean` deletes these.
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  dbt_cicd_course:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

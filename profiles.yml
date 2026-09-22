@@ -1,0 +1,25 @@
+# ---------------------------------------------------------------------------
+# profiles.yml -- the CONNECTION config.
+#
+# NOTE: this file is COMMITTED to the repo, which is normally a sin. We get
+# away with it because DuckDB is a local file and has no credentials at all.
+# With Snowflake/BigQuery/Redshift the structure stays identical -- you just
+# replace each secret with env_var("DBT_PASSWORD") and store it as a GitHub
+# secret. The shape of the file never changes; only where values come from.
+#
+# Each entry under `outputs:` is a TARGET, and a target is the whole of what
+# people mean by "an environment": where to write, and under what name.
+#
+# Right now there is only ONE target. Lesson 02 adds `ci` and `prod` -- all
+# three pointing at the SAME database.duckdb file, separated only by schema.
+# That is exactly how a real warehouse works: one Snowflake database, with
+# dev / ci_pr_42 / prod schemas sitting side by side inside it.
+# ---------------------------------------------------------------------------
+dbt_cicd_course:
+  target: dev # used when you don't pass --target
+  outputs:
+    dev:
+      type: duckdb
+      path: database.duckdb # the one and only database file
+      schema: dev # your own scratch space inside it
+      threads: 4

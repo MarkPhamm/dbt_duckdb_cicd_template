@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: orders
+    description: "One row per order, enriched with payment totals."
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_id
+        data_tests:
+          # A relationships test spans two models, so it can only pass if BOTH
+          # exist. In a deferred CI run one of them may live in `prod` and the
+          # other in `ci_pr_42` -- and it still works. Good thing to watch for.
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+
+  - name: customers
+    description: "One row per customer, with order history summarised."
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: lifetime_value
+        data_tests: [not_null]
