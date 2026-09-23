@@ -27,7 +27,7 @@ forward. Each lesson ends with a checkpoint — answer it before moving on.
 | 00 | [Orientation — what problem are we solving?](lessons/00-orientation.md) | ✅ |
 | 01 | [The project, and your `dev` environment](lessons/01-the-project-and-dev.md) | ✅ |
 | 02 | [Adding `ci` and `prod`, and layered schemas](lessons/02-ci-and-prod-targets.md) | ✅ |
-| 03 | State: what's actually inside `manifest.json` | soon |
+| 03 | [State: what's actually inside `manifest.json`](lessons/03-state-and-manifest.md) | ✅ |
 | 04 | Defer: making a build fail, then fixing it with one flag | soon |
 | 05 | Your first workflow — production (CD) | soon |
 | 06 | Slim CI on a real pull request | soon |
