@@ -166,8 +166,22 @@ everything it could possibly break."*
 Now put it back:
 
 ```bash
-git checkout models/staging/stg_payments.sql
+git restore models/staging/stg_payments.sql
 ```
+
+> ⚠️ **`git restore` discards every uncommitted change to that file**, not just
+> the line we added. That's what we want here — the edit was throwaway — but
+> don't run it on a file you've been doing real work in. Commit or stash first.
+>
+> Always confirm you're actually clean before moving on, because a leftover
+> experiment line makes every later selector in this lesson look wrong:
+>
+> ```bash
+> uv run dbt ls --quiet --select state:modified --state state/ --output name
+> ```
+>
+> **That must print nothing.** If it still lists `stg_payments`, an experiment
+> line is still in the file — check `git diff`.
 
 ---
 
@@ -185,13 +199,15 @@ Test it:
 
 ```bash
 echo "-- experiment" >> models/staging/stg_payments.sql
+
 for t in prod ci dev; do
   printf "%-5s -> " "$t"
   uv run dbt ls --quiet --select state:modified+ --state state/ \
     --resource-type model --output name --target "$t" | tr '\n' ' '
   echo
 done
-git checkout models/staging/stg_payments.sql
+
+git restore models/staging/stg_payments.sql
 ```
 
 ```
