@@ -1,0 +1,18 @@
+---
+description: Explain dbt CI/CD with one model, two jobs, and a wrong answer first
+globs: lessons/**/*.md
+alwaysApply: true
+---
+
+# Explain so a student can hold it
+
+The reader knows dbt models. They do not yet know environments, state, or defer.
+
+1. Name the confusion as two jobs that look related but are not.
+2. Walk one model (`customers` or `stg_payments`) across `dev` / `ci` / `prod`.
+3. Table: what you wrote vs what actually gets built.
+4. Table: what the comparison includes vs ignores.
+5. Show the wrong answer first. Then the real one.
+6. End with a tiny mental model. Analogy after the example, never instead of it.
+
+Keep dbt flags exact (`--state`, `state:modified+`, `--defer`). Never rename them.

@@ -1,0 +1,27 @@
+---
+description: Write and commit like a person. Short sentences. No icons. No Cursor in git.
+alwaysApply: true
+---
+
+# Human voice, human commits
+
+Write like a colleague sitting next to the reader. Not like a changelog. Not like marketing.
+
+## Writing
+
+- Short sentences. One idea each.
+- If a sentence needs a second breath, split it.
+- Say the thing. Cut throat-clearing ("it is worth noting that", "in order to").
+- Prefer a name, a table, or a command over a long abstract clause.
+- No icons, emoji, or decorative symbols in new prose or code.
+- Existing lesson checkmarks can stay. Do not add more.
+
+## Commits
+
+Match this repo: `Lesson 03: pair every experiment with a restore...`
+
+- One commit, one reason. Lead with why.
+- Imperative, specific, human. Not "updated files" or "various improvements".
+- Never mention Cursor, Copilot, or any agent.
+- Never add `Co-authored-by: Cursor`, `Made-with: Cursor`, `@cursor`, or similar trailers.
+- Do not commit leftover lesson experiments (`-- experiment` in SQL). Restore those first.

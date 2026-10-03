@@ -130,7 +130,7 @@ it's the payoff of this whole course.
                                       │
                                       └──> dbt build --target ci \
                                              --select state:modified+ \
-                                             --defer --state ./state
+                                             --defer --state ./prod_dbt_artifacts
 
                                     builds ONLY changed models  ──> ci_pr_42
                                     everything else resolves to ──> prod
@@ -140,7 +140,7 @@ Read the CI command once more, because those three flags are the entire trick:
 
 - `--select state:modified+` — "only models that differ from production, **plus
   everything downstream of them**" (that's what the `+` means)
-- `--state ./state` — "production's manifest is in this folder; compare against it"
+- `--state ./prod_dbt_artifacts` — "production's manifest is in this folder; compare against it"
 - `--defer` — "for anything I did *not* build, use production's version instead"
 
 Without these, a PR check has to rebuild your whole project. With them, a

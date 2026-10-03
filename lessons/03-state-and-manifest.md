@@ -29,15 +29,15 @@ In the real pipeline, production uploads its manifest and CI downloads it. We
 don't have GitHub Actions yet, so do the handoff by hand:
 
 ```bash
-mkdir -p state
+mkdir prod_dbt_artifacts
 uv run dbt compile --target prod
-cp target/manifest.json state/manifest.json
+cp target/manifest.json prod_dbt_artifacts/manifest.json
 ```
 
-**`state/` now holds "what production looks like."** That's the entire concept.
-From here on, `--state state/` means *"compare against production."*
+**`prod_dbt_artifacts/` now holds "what production looks like."** That's the entire concept.
+From here on, `--state prod_dbt_artifacts/` means *"compare against production."*
 
-> `state/` is gitignored on purpose. It's never committed — in the real
+> `prod_dbt_artifacts/` is gitignored on purpose. It's never committed — in the real
 > pipeline it arrives fresh from the last production run. Committing it would
 > mean comparing against whatever was true the day someone last remembered to
 > update it.
@@ -52,7 +52,7 @@ things from it.
 ```bash
 uv run python -c "
 import json
-m = json.load(open('state/manifest.json'))
+m = json.load(open('prod_dbt_artifacts/manifest.json'))
 n = m['nodes']['model.dbt_duckdb_cicd.stg_payments']
 for k in ['unique_id','schema','checksum','depends_on']:
     print(f'{k:<12} {json.dumps(n[k])[:90]}')
@@ -87,15 +87,16 @@ stg_orders           -> staging.stg_orders
 stg_payments         -> staging.stg_payments
 ```
 
-Hold onto this. In Lesson 04, `--defer` reads exactly these strings to decide
-where to point a `ref()` it didn't build.
+That address is for `--defer` (Lesson 04): "if I didn't build this model, fetch
+it from *here*." It is **not** what `state:modified` uses to decide whether a
+model changed. Section 5 proves that.
 
 ### `child_map` — how `+` knows what's downstream
 
 ```bash
 uv run python -c "
 import json
-m = json.load(open('state/manifest.json'))
+m = json.load(open('prod_dbt_artifacts/manifest.json'))
 for c in m['child_map']['model.dbt_duckdb_cicd.stg_payments']: print(' ', c)
 "
 ```
@@ -123,7 +124,7 @@ echo "-- experiment" >> models/staging/stg_payments.sql
 Now ask dbt the Lesson 01 question:
 
 ```bash
-uv run dbt ls --quiet --select state:modified+ --state state/ \
+uv run dbt ls --quiet --select state:modified+ --state prod_dbt_artifacts/ \
   --resource-type model --output name
 ```
 
@@ -146,7 +147,7 @@ understood slim CI; the rest is plumbing.
 ### Drop the `+`
 
 ```bash
-uv run dbt ls --quiet --select state:modified --state state/ \
+uv run dbt ls --quiet --select state:modified --state prod_dbt_artifacts/ \
   --resource-type model --output name
 ```
 
@@ -177,7 +178,7 @@ git restore models/staging/stg_payments.sql
 > experiment line makes every later selector in this lesson look wrong:
 >
 > ```bash
-> uv run dbt ls --quiet --select state:modified --state state/ --output name
+> uv run dbt ls --quiet --select state:modified --state prod_dbt_artifacts/ --output name
 > ```
 >
 > **That must print nothing.** If it still lists `stg_payments`, an experiment
@@ -187,22 +188,73 @@ git restore models/staging/stg_payments.sql
 
 ## 5. One thing worth verifying yourself
 
-There's a trap here that used to bite people, and it's worth seeing that it
-*doesn't* bite us.
+The trap is mixing up **two different jobs** the manifest does.
 
-Our `state/manifest.json` was compiled with `--target prod`, where models live
-in `staging` / `marts`. But CI runs with `--target ci`, where everything lands
-in one flat schema. **Different schemas for every single model.** Shouldn't
-that make dbt think everything changed?
+- `state:modified` asks: *did the **code** change?*
+- `--defer` asks: *where does this table **live in prod**?*
 
-Test it:
+Those are not the same comparison.
+
+### One model, three addresses
+
+Take `customers`. You wrote this once in `dbt_project.yml`:
+
+```yaml
+marts:
+  +schema: marts
+```
+
+`generate_schema_name.sql` then **rewrites** that depending on the target:
+
+| Target | What you wrote | What actually gets built |
+|---|---|---|
+| `prod` | `+schema: marts` | `marts.customers` |
+| `ci` | `+schema: marts` | `ci_local.customers` |
+| `dev` | `+schema: marts` | `dev.customers` |
+
+Same file. Same YAML. Three different warehouse addresses.
+
+Your saved prod manifest was compiled with `--target prod`, so it records
+`customers -> marts.customers`. CI will later write `ci_local.customers`.
+**Every model has this mismatch.** So the natural fear is:
+
+> If I compare current CI against that prod manifest, won’t dbt think *every*
+> model changed, just because the schema names differ?
+
+That would be true **if** `state:modified` compared the finished warehouse
+address. It does not.
+
+### What `state:modified` actually compares
+
+For each model it looks at things like:
+
+1. The SQL file checksum (`customers.sql` itself)
+2. The **unrendered** config — the literal `+schema: marts` in `dbt_project.yml`
+
+It does **not** look at the macro’s output (`marts` vs `ci_local` vs `dev`).
+
+So if you only edited `stg_payments.sql`:
+
+| Thing compared | Prod manifest | Current project | Changed? |
+|---|---|---|---|
+| `customers.sql` checksum | `abc123` | `abc123` | no |
+| Written config | `+schema: marts` | `+schema: marts` | no |
+| Resolved schema | `marts` | `ci_local` | **ignored** |
+
+`customers` is not modified. It only shows up in `state:modified+` because it
+is **downstream** of `stg_payments` — that is the `+`.
+
+### What the loop is proving
+
+`--target` only changes where the macro *would* put tables. It does not change
+the SQL or the YAML.
 
 ```bash
 echo "-- experiment" >> models/staging/stg_payments.sql
 
 for t in prod ci dev; do
   printf "%-5s -> " "$t"
-  uv run dbt ls --quiet --select state:modified+ --state state/ \
+  uv run dbt ls --quiet --select state:modified+ --state prod_dbt_artifacts/ \
     --resource-type model --output name --target "$t" | tr '\n' ' '
   echo
 done
@@ -210,21 +262,26 @@ done
 git restore models/staging/stg_payments.sql
 ```
 
+If dbt compared resolved schemas, `ci` and `dev` would list **all six** models
+— Slim CI would silently become a full rebuild. What you actually get:
+
 ```
 prod  -> customers int_order_payments orders stg_payments
 ci    -> customers int_order_payments orders stg_payments
 dev   -> customers int_order_payments orders stg_payments
 ```
 
-Identical. Modern dbt compares the **unrendered** config values — the literal
-`+schema: marts` from `dbt_project.yml`, not the `marts` that our macro
-resolved it to. So target-driven naming differences don't register as changes.
+Same four models. The target you run against does not pollute `state:modified`.
+Only editing `stg_payments.sql` did.
 
-On older dbt versions this was a genuine and confusing failure mode: CI would
-report every model as modified, slim CI would silently degrade into a full
-build, and nobody would notice except the billing department. If you ever
-inherit a project where `state:modified` selects everything, this is the first
-thing to check.
+Tiny mental model: `state:modified` diffs the **recipe**. `--defer` (Lesson 04)
+reads the **shelf label** in the old manifest so CI can find prod’s table
+without rebuilding it.
+
+On older dbt versions this was a genuine failure mode: CI reported every model
+as modified, slim CI silently became a full build, and nobody noticed except
+the billing department. If you ever inherit a project where `state:modified`
+selects everything, this is the first thing to check.
 
 ---
 
@@ -252,7 +309,7 @@ old manifest," and a model that didn't exist certainly differs. So
 
 ## ✅ Checkpoint
 
-1. `state/manifest.json` records `stg_orders -> staging.stg_orders`. You now
+1. `prod_dbt_artifacts/manifest.json` records `stg_orders -> staging.stg_orders`. You now
    run a build with `--target ci`. **Does CI write to `staging.stg_orders`?**
    If not, what is that recorded address for?
 

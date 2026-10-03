@@ -241,5 +241,5 @@ logs/
 
 # Production artifacts downloaded at runtime by CI. Never committed -- the
 # whole point is that they come from the last real production run.
-state/
+prod_dbt_artifacts/
 dbt_internal_packages/

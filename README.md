@@ -64,7 +64,7 @@ And the pipeline those environments plug into:
                                       │
                                       └──> dbt build --target ci \
                                              --select state:modified+ \
-                                             --defer --state ./state
+                                             --defer --state ./prod_dbt_artifacts
 
                                     builds ONLY changed models  ──> ci_pr_42
                                     everything else resolves to ──> prod
