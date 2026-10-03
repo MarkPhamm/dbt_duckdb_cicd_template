@@ -35,7 +35,45 @@ is structural. Three things went unverified:
 - Nothing checked what your change did to the **17 models downstream** of the
   one you touched.
 
-CI/CD closes exactly those three gaps. That's its whole job.
+CI/CD closes exactly those three gaps. That's its whole job. The acronym
+is two jobs, though. Not one.
+
+---
+
+## What CI and CD actually are
+
+People say "CI/CD" as if it were a single feature you install. It is two
+jobs that share a handshake.
+
+- **CI — continuous integration.** A pull request opened. Prove the change
+  is safe *before* it can merge.
+- **CD — continuous deployment.** That pull request merged to `main`. Apply
+  the change to production.
+
+Take `stg_payments`. You edit it. You open a PR. Two different machines
+will run two different commands:
+
+| When | Job | What runs | Where it writes | If it fails |
+|---|---|---|---|---|
+| PR opened | CI | only what changed | `ci_pr_42` (thrown away) | the PR goes red; prod is untouched |
+| PR merged | CD | everything | `staging` / `marts` (the warehouse) | someone gets paged; prod is already wrong |
+
+Same model. Same repo. Two jobs.
+
+The wrong picture: *"CI/CD means GitHub Actions."*
+
+GitHub Actions is just the runner — a laptop you do not own. You can do
+both jobs on your machine. Lessons 01–04 do exactly that. The YAML files
+in Lessons 05–06 only press the same buttons.
+
+The handshake is why they get written as one acronym. CD's production run
+writes `manifest.json`. Tomorrow's CI job downloads it and asks, "what
+changed since last night?" No CD artifact, no Slim CI. The two jobs
+need each other.
+
+Tiny mental model: **CI is the dress rehearsal. CD is opening night.**
+CI uses a disposable set. CD is the real stage. The manifest is the
+notes the rehearsal reads so it does not have to rebuild the whole set.
 
 ---
 
@@ -179,10 +217,13 @@ is above — go find it rather than guessing.
 1. A colleague says: *"We should add a `ci` environment to our dbt project."*
    Concretely, what file would they edit, and what would they add to it?
 
-2. Your production job finished successfully last night. It produced the tables.
+2. You open a PR that edits `stg_payments`. Then you merge it. **Which of
+   those is CI, which is CD**, and what is different about where they write?
+
+3. Your production job finished successfully last night. It produced the tables.
    **What else did it produce**, and why does tomorrow's pull request care?
 
-3. In `--select state:modified+`, what does the `+` do? What would break if you
+4. In `--select state:modified+`, what does the `+` do? What would break if you
    left it off?
 
 When you've got these, open **Lesson 01**.

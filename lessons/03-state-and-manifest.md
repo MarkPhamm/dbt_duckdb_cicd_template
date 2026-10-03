@@ -329,7 +329,7 @@ old manifest," and a model that didn't exist certainly differs. So
 
 You can now compute **exactly which models a change affects.** But try actually
 building that list into an empty schema and it will fail — because
-`int_order_payments` needs `stg_orders`, and you didn't build `stg_orders`.
+`orders` still refs `stg_orders`, and you didn't build `stg_orders`.
 
 That's Lesson 04, and `--defer` is the answer.
 
