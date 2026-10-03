@@ -1,0 +1,57 @@
+# CI — continuous integration.
+# A pull request opened -> download last night's CD artifact ->
+# build only what changed, and read the rest from prod.
+#
+# This file must not write to production. That is cd.yml.
+
+name: ci
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  slim-ci:
+    runs-on: ubuntu-latest
+    env:
+      DBT_PROFILES_DIR: .
+      DBT_CI_SCHEMA: ci_pr_${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install the locked dbt
+        run: uv sync --frozen
+
+      - name: Download the latest CD artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p prod_dbt_artifacts database
+          RUN_ID=$(gh run list \
+            --workflow=cd.yml \
+            --branch=main \
+            --status=success \
+            --limit=1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "No successful cd.yml run on main yet."
+            echo "Merge to main once (or Run workflow) so CD can upload artifacts."
+            exit 1
+          fi
+          gh run download "$RUN_ID" --name prod-dbt-artifacts --dir prod_dbt_artifacts
+          cp prod_dbt_artifacts/database.duckdb database/database.duckdb
+
+      - name: Slim CI
+        run: >
+          uv run dbt build --target ci
+          --select state:modified+
+          --defer --state prod_dbt_artifacts/

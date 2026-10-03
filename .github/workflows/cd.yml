@@ -1,0 +1,49 @@
+# CD — continuous deployment.
+# Merge to main (or press Run workflow) -> build everything ->
+# save the two files tomorrow's pull request needs.
+#
+# This file must not run on a pull request. That is ci.yml.
+
+name: cd
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: cd
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DBT_PROFILES_DIR: .
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install the locked dbt
+        run: uv sync --frozen
+
+      - name: Build production
+        run: uv run dbt build --target prod
+
+      - name: Stage artifacts
+        run: |
+          mkdir -p prod_dbt_artifacts
+          cp target/manifest.json prod_dbt_artifacts/manifest.json
+          cp database/database.duckdb prod_dbt_artifacts/database.duckdb
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-dbt-artifacts
+          path: prod_dbt_artifacts/
+          if-no-files-found: error
+          retention-days: 30
