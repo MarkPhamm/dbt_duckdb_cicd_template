@@ -22,17 +22,17 @@ uv run dbt build
 Then read [`lessons/00-orientation.md`](lessons/00-orientation.md) and work
 forward. Each lesson ends with a checkpoint — answer it before moving on.
 
-| # | Lesson | |
+| # | Lesson | Status |
 |---|---|---|
-| 00 | [Orientation — what problem are we solving?](lessons/00-orientation.md) | ✅ |
-| 01 | [The project, and your `dev` environment](lessons/01-the-project-and-dev.md) | ✅ |
-| 02 | [Adding `ci` and `prod`, and layered schemas](lessons/02-ci-and-prod-targets.md) | ✅ |
-| 03 | [State: what's actually inside `manifest.json`](lessons/03-state-and-manifest.md) | ✅ |
-| 04 | [Defer: making a build fail, then fixing it with one flag](lessons/04-defer.md) | |
-| 05 | Your first workflow — production (CD) | soon |
-| 06 | Slim CI on a real pull request | soon |
-| 07 | Feedback and guardrails | soon |
-| 08 | Where the training wheels are | soon |
+| 00 | [Orientation — what problem are we solving?](lessons/00-orientation.md) | check |
+| 01 | [The project, and your `dev` environment](lessons/01-the-project-and-dev.md) | check |
+| 02 | [Adding `ci` and `prod`, and layered schemas](lessons/02-ci-and-prod-targets.md) | check |
+| 03 | [State: what's actually inside `manifest.json`](lessons/03-state-and-manifest.md) | check |
+| 04 | [Defer: making a build fail, then fixing it with one flag](lessons/04-defer.md) | check |
+| 05 | [Your first workflow — production (CD)](lessons/05-cd.md) | check |
+| 06 | [Slim CI on a real pull request](lessons/06-ci.md) | check |
+| 07 | [Feedback and guardrails](lessons/07-guardrails.md) | check |
+| 08 | [Where the training wheels are](lessons/08-training-wheels.md) | check |
 
 Lessons 01–04 are **entirely local**. We don't touch GitHub Actions until you've
 already done slim CI by hand — so that when you do, it's automation of something
@@ -55,7 +55,7 @@ database/database.duckdb
 And the pipeline those environments plug into:
 
 ```
-  merge to main ──> prod.yml ──> dbt build --target prod
+  merge to main ──> cd.yml ───> dbt build --target prod
                                       │
                                       └──> upload artifact:
                                              manifest.json + database.duckdb
@@ -99,5 +99,5 @@ models/intermediate/ 1 view
 models/marts/        2 tables
 macros/              generate_schema_name.sql — decides every model's schema
 lessons/             the course
-.github/workflows/   ci.yml and prod.yml (from Lesson 05)
+.github/workflows/   cd.yml (Lesson 05) and ci.yml (Lesson 06)
 ```

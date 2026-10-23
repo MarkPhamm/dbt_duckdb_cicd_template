@@ -323,9 +323,9 @@ uv run dbt build --target ci \
   --defer --state prod_dbt_artifacts/
 ```
 
-Lesson 05 puts the production half on GitHub Actions. Merge to `main`
+Lesson 05 puts the production half in `cd.yml`. Merge to `main`
 builds everything and uploads that artifact. Lesson 06 is this same
-command, on a pull request.
+command, in `ci.yml`, on a pull request.
 
 ---
 

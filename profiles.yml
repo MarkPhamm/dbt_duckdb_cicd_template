@@ -48,7 +48,7 @@ dbt_duckdb_cicd:
     #
     # In a real warehouse this target would carry different CREDENTIALS too,
     # not just a different name -- that's what stops CI from writing to prod.
-    # With one DuckDB file we have no such protection. See Lesson 07.
+    # With one DuckDB file we have no such protection. Lessons 07 and 08.
     prod:
       type: duckdb
       path: database/database.duckdb

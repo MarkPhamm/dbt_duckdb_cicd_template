@@ -157,7 +157,7 @@ it's the payoff of this whole course.
 ## What we're going to build
 
 ```
-  merge to main ──> prod.yml ──> dbt build --target prod   (build everything)
+  merge to main ──> cd.yml ───> dbt build --target prod   (build everything)
                                       │
                                       └──> upload artifact:
                                              manifest.json + database.duckdb
