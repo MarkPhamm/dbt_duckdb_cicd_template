@@ -4,9 +4,20 @@
 # Stand-in for a real source table. In production this would be a `source`, not a seed.
 raw_customers
 -
+id INTEGER
+first_name VARCHAR
+last_name VARCHAR
 
 raw_orders
 -
+id INTEGER
+user_id INTEGER
+order_date DATE
+status VARCHAR
 
 raw_payments
 -
+id INTEGER
+order_id INTEGER
+payment_method VARCHAR
+amount INTEGER

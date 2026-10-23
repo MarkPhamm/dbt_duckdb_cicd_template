@@ -4,11 +4,20 @@
 # One row per customer, with order history summarised.
 customers
 -
-customer_id PK
-lifetime_value
+customer_id PK INTEGER
+first_name VARCHAR
+last_name VARCHAR
+first_order DATE
+most_recent_order DATE
+number_of_orders BIGINT
+lifetime_value DOUBLE
 
 # One row per order, enriched with payment totals.
 orders
 -
-order_id PK
-customer_id FK >- stg_customers.customer_id
+order_id PK INTEGER
+customer_id INTEGER FK >- stg_customers.customer_id
+order_date DATE
+status VARCHAR
+payment_count BIGINT
+amount DOUBLE

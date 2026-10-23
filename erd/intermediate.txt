@@ -4,5 +4,6 @@
 # Payments aggregated to one row per order. Not for end users.
 int_order_payments
 -
-order_id PK
-total_amount
+order_id PK INTEGER
+payment_count BIGINT
+total_amount DOUBLE

@@ -5,16 +5,22 @@
 stg_customers
 -
 # Primary key.
-customer_id PK
+customer_id PK INTEGER
+first_name VARCHAR
+last_name VARCHAR
 
 # One row per order, renamed from raw.
 stg_orders
 -
-order_id PK
-status
+order_id PK INTEGER
+customer_id INTEGER
+order_date DATE
+status VARCHAR
 
 # One row per payment. Amounts converted from cents to dollars.
 stg_payments
 -
-payment_id PK
-payment_method
+payment_id PK INTEGER
+order_id INTEGER
+payment_method VARCHAR
+amount DOUBLE

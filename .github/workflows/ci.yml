@@ -67,9 +67,10 @@ jobs:
   # reviewer reading a SQL diff is worst at spotting.
   #
   # It deliberately shares nothing with slim-ci: no prod artifact, no
-  # database, no --defer. `dbt parse` writes target/manifest.json without
-  # connecting to anything, and the whole schema is derived from that file.
-  # So this job stays green on a brand-new repo that has never run CD.
+  # --defer, no state. It builds the whole project from the seeds into its
+  # own throwaway schema on its own runner, so it stays green on a brand-new
+  # repo that has never run CD. On a warehouse where a full build is not
+  # free, see the note in Lesson 08.
   erd:
     runs-on: ubuntu-latest
     permissions:
@@ -77,6 +78,9 @@ jobs:
       pull-requests: write # the action posts/updates one comment
     env:
       DBT_PROFILES_DIR: .
+      # Same name slim-ci uses, but a different runner with its own empty
+      # database file — the two jobs never see each other's schema.
+      DBT_CI_SCHEMA: ci_pr_${{ github.event.pull_request.number }}
     steps:
       - uses: actions/checkout@v4
 
@@ -88,9 +92,13 @@ jobs:
       - name: Install the locked dbt
         run: uv sync --frozen
 
-      # Cheapest possible manifest: parses the project, touches no warehouse.
-      - name: Parse the project
-        run: uv run dbt parse
+      # manifest.json alone knows every table and every column you documented.
+      # catalog.json is what knows the column TYPES, and dbt can only write it
+      # by querying relations that actually exist — hence the build first.
+      - name: Build, then describe what got built
+        run: |
+          uv run dbt build --target ci
+          uv run dbt docs generate --target ci
 
       - uses: MarkPhamm/quickdbd-cli@v0.2.3
         with:
@@ -99,5 +107,7 @@ jobs:
           # Fail if erd/ is out of date instead of silently regenerating, so
           # the committed files are always a truthful "before" to diff against.
           dbt-check: "true"
+          # No --catalog needed: qdbd picks up target/catalog.json because it
+          # sits next to the manifest.
           output: target/erd.html # target/ is gitignored; this is a build output
           qdbd-version: "0.2.3" # pinned for the same reason dbt is

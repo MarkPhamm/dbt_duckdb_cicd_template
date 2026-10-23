@@ -110,9 +110,15 @@ lessons/             the course
 answers the question a reviewer reading a SQL diff is worst at: **did a table or
 column appear, vanish or get renamed?**
 
-It runs [qdbd](https://github.com/MarkPhamm/quickdbd-cli), which reads
-`target/manifest.json` and writes a text description of every table into `erd/`.
-That folder is **committed**, so a pull request shows the schema change as a
+It runs [qdbd](https://github.com/MarkPhamm/quickdbd-cli), which reads dbt's own
+two description files and writes a text description of every table into `erd/`:
+
+| file | what it knows |
+|---|---|
+| `target/manifest.json` | every table, every documented column, every test |
+| `target/catalog.json` | the column **types**, read back out of the warehouse |
+
+`erd/` is **committed**, so a pull request shows the schema change as a plain
 diff — and the action posts it as a comment, with an interactive diagram
 attached to the run as the `erd` artifact.
 
@@ -123,6 +129,12 @@ Change a model's columns and CI will fail until you regenerate:
 git add erd/
 ```
 
-The job shares nothing with `slim-ci` — no prod artifact, no database, no
-`--defer`. `dbt parse` writes a manifest without connecting to anything, so this
-check works on a repo that has never run CD.
+dbt can only write `catalog.json` for relations that **exist**, so both the
+script and the CI job build first. The job still shares nothing with `slim-ci` —
+no prod artifact, no `--state`, no `--defer` — it builds the whole project from
+the seeds into its own throwaway schema, which means it works on a repo that has
+never run CD. Lesson 08 covers what you'd do instead on a warehouse where a full
+build isn't free.
+
+The ERD comes out **byte-identical** for `dev`, `ci` and `prod`. Same reason
+`state:modified` does: both describe the code, not the address it lands at.

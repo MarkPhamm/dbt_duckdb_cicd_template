@@ -34,10 +34,17 @@ jobs:
       - name: Build production
         run: uv run dbt build --target prod
 
+      # Production's third output. manifest.json describes the project as
+      # written; catalog.json describes the warehouse as built — every column
+      # and its real type, read back out of information_schema.
+      - name: Describe what production built
+        run: uv run dbt docs generate --target prod
+
       - name: Stage artifacts
         run: |
           mkdir -p prod_dbt_artifacts
           cp target/manifest.json prod_dbt_artifacts/manifest.json
+          cp target/catalog.json prod_dbt_artifacts/catalog.json
           cp database/database.duckdb prod_dbt_artifacts/database.duckdb
 
       - name: Upload artifacts
