@@ -59,3 +59,45 @@ jobs:
           uv run dbt build --target ci
           --select state:modified+
           --defer --state prod_dbt_artifacts/
+
+  # A second, independent check: what did this PR do to the SHAPE of the data?
+  #
+  # slim-ci above answers "are the numbers still right?". This answers
+  # "did a table or column appear, vanish or get renamed?" — the thing a
+  # reviewer reading a SQL diff is worst at spotting.
+  #
+  # It deliberately shares nothing with slim-ci: no prod artifact, no
+  # database, no --defer. `dbt parse` writes target/manifest.json without
+  # connecting to anything, and the whole schema is derived from that file.
+  # So this job stays green on a brand-new repo that has never run CD.
+  erd:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # the action posts/updates one comment
+    env:
+      DBT_PROFILES_DIR: .
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install the locked dbt
+        run: uv sync --frozen
+
+      # Cheapest possible manifest: parses the project, touches no warehouse.
+      - name: Parse the project
+        run: uv run dbt parse
+
+      - uses: MarkPhamm/quickdbd-cli@v0.2.3
+        with:
+          dbt-manifest: target/manifest.json
+          path: erd/
+          # Fail if erd/ is out of date instead of silently regenerating, so
+          # the committed files are always a truthful "before" to diff against.
+          dbt-check: "true"
+          output: target/erd.html # target/ is gitignored; this is a build output
+          qdbd-version: "0.2.3" # pinned for the same reason dbt is

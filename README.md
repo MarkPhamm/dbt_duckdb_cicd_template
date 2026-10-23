@@ -98,6 +98,31 @@ models/staging/      3 views
 models/intermediate/ 1 view
 models/marts/        2 tables
 macros/              generate_schema_name.sql — decides every model's schema
+erd/                 generated schema diagram source — committed, checked by CI
+scripts/             build-erd.sh — regenerates erd/
 lessons/             the course
-.github/workflows/   cd.yml (Lesson 05) and ci.yml (Lesson 06)
+.github/workflows/   cd.yml (Lesson 05) and ci.yml (Lesson 06 + the ERD check)
 ```
+
+## The second CI check: what changed *shape*?
+
+`slim-ci` answers *"are the numbers still right?"*. A second, independent job
+answers the question a reviewer reading a SQL diff is worst at: **did a table or
+column appear, vanish or get renamed?**
+
+It runs [qdbd](https://github.com/MarkPhamm/quickdbd-cli), which reads
+`target/manifest.json` and writes a text description of every table into `erd/`.
+That folder is **committed**, so a pull request shows the schema change as a
+diff — and the action posts it as a comment, with an interactive diagram
+attached to the run as the `erd` artifact.
+
+Change a model's columns and CI will fail until you regenerate:
+
+```bash
+./scripts/build-erd.sh
+git add erd/
+```
+
+The job shares nothing with `slim-ci` — no prod artifact, no database, no
+`--defer`. `dbt parse` writes a manifest without connecting to anything, so this
+check works on a repo that has never run CD.
